@@ -1,0 +1,153 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Authenticated user profile in AgriSentinel AI",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address",
+          "maxLength": 256
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name",
+          "maxLength": 100
+        },
+        "role": {
+          "type": "string",
+          "description": "Assigned role",
+          "enum": ["farmer", "extension_worker", "expert", "district_admin", "system_admin"]
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Avatar photo URL",
+          "maxLength": 1024
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of account creation"
+        }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Observation": {
+      "title": "Observation",
+      "description": "Field observation submitted by farmer or extension worker",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique observation identifier",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID of author",
+          "maxLength": 128
+        },
+        "plotId": {
+          "type": "string",
+          "description": "Target plot ID",
+          "maxLength": 64
+        },
+        "crop": {
+          "type": "string",
+          "description": "Crop name",
+          "maxLength": 50
+        },
+        "variety": {
+          "type": "string",
+          "description": "Crop variety",
+          "maxLength": 50
+        },
+        "growthStage": {
+          "type": "string",
+          "description": "Phenological stage",
+          "maxLength": 50
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Foliage image reference URL",
+          "maxLength": 2048
+        },
+        "qualityScore": {
+          "type": "number",
+          "description": "Optical sharpness score 0-100"
+        },
+        "symptomsSummary": {
+          "type": "string",
+          "description": "Observed symptoms summary",
+          "maxLength": 1000
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp"
+        }
+      },
+      "required": ["id", "userId", "crop", "imageUrl"]
+    },
+    "Validation": {
+      "title": "Validation",
+      "description": "Expert pathologist validation review",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Validation record ID",
+          "maxLength": 128
+        },
+        "caseId": {
+          "type": "string",
+          "description": "Target case ID",
+          "maxLength": 64
+        },
+        "validatorId": {
+          "type": "string",
+          "description": "UID of validating pathologist",
+          "maxLength": 128
+        },
+        "validatorName": {
+          "type": "string",
+          "description": "Name of pathologist",
+          "maxLength": 100
+        },
+        "status": {
+          "type": "string",
+          "description": "Verdict status",
+          "enum": ["expert_confirmed", "expert_rejected", "escalated_to_pathologist"]
+        },
+        "remarks": {
+          "type": "string",
+          "description": "Microscopic and field findings",
+          "maxLength": 2000
+        },
+        "validatedAt": {
+          "type": "string",
+          "description": "Verification timestamp"
+        }
+      },
+      "required": ["id", "caseId", "validatorId", "status", "remarks"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile records restricted to owner or admin"
+    },
+    "/observations/{observationId}": {
+      "schema": "Observation",
+      "description": "Field observation records readable by author, extension workers, and experts"
+    },
+    "/validations/{validationId}": {
+      "schema": "Validation",
+      "description": "Expert validation reviews"
+    }
+  }
+}

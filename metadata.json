@@ -1,0 +1,6 @@
+{
+  "name": "AgriSentinel AI",
+  "description": "AI crop-health early-warning and decision platform for Maharashtra field conditions, fusing visual, environmental, temporal, and spatial evidence with extension-worker validation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

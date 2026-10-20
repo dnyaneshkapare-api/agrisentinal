@@ -1,0 +1,69 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'dnyaneshkapare@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Test connection doc (used to verify Firestore connectivity on app boot)
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isValidId(userId) && isOwner(userId)
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email is string
+        && request.resource.data.role in ['farmer', 'extension_worker', 'expert', 'district_admin', 'system_admin'];
+      allow update: if isValidId(userId) && (isOwner(userId) || isAdmin())
+        && request.resource.data.uid == resource.data.uid;
+      allow delete: if isAdmin();
+    }
+
+    // Observations
+    match /observations/{observationId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.crop is string
+        && request.resource.data.crop.size() <= 50;
+      allow update: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // Validations (Pathologists / Experts)
+    match /validations/{validationId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.validatorId == request.auth.uid
+        && request.resource.data.status in ['expert_confirmed', 'expert_rejected', 'escalated_to_pathologist'];
+      allow update: if isSignedIn() && (resource.data.validatorId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+  }
+}
